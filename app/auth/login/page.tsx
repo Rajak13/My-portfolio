@@ -14,6 +14,12 @@ function LoginContent() {
           </p>
         </div>
         <LoginForm />
+        
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            By signing in, you agree to our terms of service and privacy policy.
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -22,8 +28,11 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     }>
       <LoginContent />

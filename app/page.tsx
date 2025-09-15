@@ -1,6 +1,8 @@
+import { Layout } from '@/components/layout'
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <Layout.Root>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8">
           Multilingual Portfolio
@@ -9,6 +11,6 @@ export default function Home() {
           Welcome to your modern, interactive portfolio website
         </p>
       </div>
-    </main>
+    </Layout.Root>
   )
 }

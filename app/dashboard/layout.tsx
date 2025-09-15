@@ -1,5 +1,6 @@
 import { AuthProvider } from '@/lib/providers/AuthProvider'
 import { UserMenu } from '@/components/auth/UserMenu'
+import { Breadcrumb } from '@/components/layout'
 
 export default function DashboardLayout({
   children,
@@ -24,6 +25,7 @@ export default function DashboardLayout({
         
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
+            <Breadcrumb className="mb-6" />
             {children}
           </div>
         </main>

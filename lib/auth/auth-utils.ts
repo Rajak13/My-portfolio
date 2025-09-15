@@ -73,12 +73,17 @@ export const authUtils = {
   /**
    * Sign in with GitHub OAuth
    */
-  async signInWithGitHub(): Promise<AuthResult> {
+  async signInWithGitHub(redirectTo?: string): Promise<AuthResult> {
     try {
+      const callbackUrl = new URL('/auth/callback', window.location.origin)
+      if (redirectTo) {
+        callbackUrl.searchParams.set('next', redirectTo)
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       })
 
@@ -144,6 +149,42 @@ export const authUtils = {
       return { data }
     } catch (error) {
       return { error: error as Error }
+    }
+  },
+
+  /**
+   * Get current session
+   */
+  async getSession() {
+    try {
+      const { data, error } = await supabase.auth.getSession()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error as Error }
+    }
+  },
+
+  /**
+   * Get current user
+   */
+  async getUser() {
+    try {
+      const { data, error } = await supabase.auth.getUser()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error as Error }
+    }
+  },
+
+  /**
+   * Refresh session
+   */
+  async refreshSession() {
+    try {
+      const { data, error } = await supabase.auth.refreshSession()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error: error as Error }
     }
   },
 }

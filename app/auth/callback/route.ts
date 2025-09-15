@@ -1,47 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
+  const error = searchParams.get('error')
+  const errorDescription = searchParams.get('error_description')
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error:', error, errorDescription)
+    const errorUrl = new URL('/auth/auth-code-error', origin)
+    errorUrl.searchParams.set('error', error)
+    if (errorDescription) {
+      errorUrl.searchParams.set('error_description', errorDescription)
+    }
+    return NextResponse.redirect(errorUrl)
+  }
 
   if (code) {
-    const supabase = createServerClient()
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error && data.user) {
-      // Check if profile exists, create if not
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .single()
-
-      if (profileError && profileError.code === 'PGRST116') {
-        // Profile doesn't exist, create it using admin client
-        const displayName = data.user.user_metadata?.full_name || 
-                           data.user.user_metadata?.name || 
-                           data.user.email?.split('@')[0] || 
-                           'User'
-
-        const { error: insertError } = await supabaseAdmin.from('profiles').insert({
-          id: data.user.id,
-          display_name: displayName,
-          role: 'author' as const, // Default role
-          avatar_url: data.user.user_metadata?.avatar_url || null,
-        } as any)
-        
-        if (insertError) {
-          console.error('Error creating profile:', insertError)
-        }
+    try {
+      const supabase = createServerClient()
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (exchangeError) {
+        console.error('Error exchanging code for session:', exchangeError)
+        const errorUrl = new URL('/auth/auth-code-error', origin)
+        errorUrl.searchParams.set('error', 'exchange_failed')
+        errorUrl.searchParams.set('error_description', exchangeError.message)
+        return NextResponse.redirect(errorUrl)
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      if (data.user) {
+        // Profile creation is handled by the database trigger
+        // The trigger will create a profile automatically when a new user is created
+
+        // Create response and set session cookies
+        const response = NextResponse.redirect(`${origin}${next}`)
+        
+        // Set session cookies for better SSR support
+        if (data.session) {
+          response.cookies.set('sb-access-token', data.session.access_token, {
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: data.session.expires_in
+          })
+          
+          response.cookies.set('sb-refresh-token', data.session.refresh_token, {
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30 // 30 days
+          })
+        }
+
+        return response
+      }
+    } catch (error) {
+      console.error('Unexpected error in auth callback:', error)
+      const errorUrl = new URL('/auth/auth-code-error', origin)
+      errorUrl.searchParams.set('error', 'unexpected_error')
+      errorUrl.searchParams.set('error_description', 'An unexpected error occurred during authentication')
+      return NextResponse.redirect(errorUrl)
     }
   }
 
-  // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // No code provided
+  const errorUrl = new URL('/auth/auth-code-error', origin)
+  errorUrl.searchParams.set('error', 'no_code')
+  errorUrl.searchParams.set('error_description', 'No authorization code provided')
+  return NextResponse.redirect(errorUrl)
 }

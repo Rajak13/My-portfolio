@@ -118,7 +118,7 @@ export function useUser() {
     }
   }
 
-  const updateProfile = async (updates: any) => {
+  const updateProfile = async (updates: Partial<Profile>) => {
     if (!state.user) return { error: new Error('No user logged in') }
 
     const { data, error } = await (supabase as any)

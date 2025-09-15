@@ -13,7 +13,7 @@
   - Set up Supabase Storage buckets for public media and avatars
   - _Requirements: 2.2, 2.5, 5.5, 8.1, 8.4_
 
-- [ ] 3. Authentication System Implementation
+- [x] 3. Authentication System Implementation
   - Implement Supabase Auth integration with email and GitHub OAuth providers
   - Create useUser hook for session management and user state
   - Build login/logout components with proper error handling
@@ -21,7 +21,7 @@
   - Create user profile management functionality
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
 
-- [ ] 4. Core Layout and Navigation Components
+- [x] 4. Core Layout and Navigation Components
   - Build responsive Layout.Root component with header, main, and footer
   - Implement navigation component with mobile-responsive menu
   - Create Layout.Asymmetric component for magazine-style layouts

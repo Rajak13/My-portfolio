@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { authUtils } from '@/lib/auth/auth-utils'
 
 interface LoginFormProps {
@@ -9,12 +9,16 @@ interface LoginFormProps {
   onSuccess?: () => void
 }
 
-export function LoginForm({ redirectTo = '/dashboard', onSuccess }: LoginFormProps) {
+export function LoginForm({ redirectTo, onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get redirect URL from search params or use provided redirectTo
+  const finalRedirectTo = searchParams.get('redirectTo') || redirectTo || '/dashboard'
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +36,7 @@ export function LoginForm({ redirectTo = '/dashboard', onSuccess }: LoginFormPro
     if (onSuccess) {
       onSuccess()
     } else {
-      router.push(redirectTo as any)
+      router.push(finalRedirectTo as any)
     }
   }
 
@@ -40,7 +44,8 @@ export function LoginForm({ redirectTo = '/dashboard', onSuccess }: LoginFormPro
     setLoading(true)
     setError(null)
 
-    const { error } = await authUtils.signInWithGitHub()
+    // Pass the redirect URL to GitHub OAuth
+    const { error } = await authUtils.signInWithGitHub(finalRedirectTo)
 
     if (error) {
       setError(error.message)
@@ -127,6 +132,27 @@ export function LoginForm({ redirectTo = '/dashboard', onSuccess }: LoginFormPro
             </svg>
             {loading ? 'Connecting...' : 'Continue with GitHub'}
           </button>
+        </div>
+
+        <div className="space-y-2 text-center text-sm">
+          <p className="text-gray-600">
+            Don&apos;t have an account?{' '}
+            <a
+              href="/auth/signup"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Sign up
+            </a>
+          </p>
+          <p className="text-gray-600">
+            Forgot your password?{' '}
+            <a
+              href="/auth/reset-password"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Reset it
+            </a>
+          </p>
         </div>
       </form>
     </div>
