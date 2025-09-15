@@ -15,3 +15,14 @@ export const supabase = createClient<Database>(supabaseUrl, supabasePublishableK
     detectSessionInUrl: true
   }
 })
+
+// Export a function to create a new client instance
+export function createSupabaseClient() {
+  return createClient<Database>(supabaseUrl, supabasePublishableKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  })
+}

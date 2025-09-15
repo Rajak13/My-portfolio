@@ -64,8 +64,8 @@ INSERT INTO translations (key, language, value) VALUES
     ('common.draft', 'ne', 'मस्यौदा'),
     ('common.loading', 'ne', 'लोड हुँदै...');
 
--- Insert a default theme
-INSERT INTO themes (slug, name, data, is_public, created_by) VALUES
+-- Insert default system themes (no creator required)
+INSERT INTO themes (slug, name, data, is_public, is_system) VALUES
     ('default', 'Default Theme', '{
         "colors": {
             "primary": "#3b82f6",
@@ -84,10 +84,10 @@ INSERT INTO themes (slug, name, data, is_public, created_by) VALUES
             "scale": 1,
             "rhythm": 1.5
         }
-    }', true, (SELECT id FROM profiles WHERE role = 'admin' LIMIT 1));
+    }', true, true)
+    ON CONFLICT (slug) DO NOTHING;
 
--- Insert a dark theme
-INSERT INTO themes (slug, name, data, is_public, created_by) VALUES
+INSERT INTO themes (slug, name, data, is_public, is_system) VALUES
     ('dark', 'Dark Theme', '{
         "colors": {
             "primary": "#60a5fa",
@@ -106,4 +106,5 @@ INSERT INTO themes (slug, name, data, is_public, created_by) VALUES
             "scale": 1,
             "rhythm": 1.5
         }
-    }', true, (SELECT id FROM profiles WHERE role = 'admin' LIMIT 1));
+    }', true, true)
+    ON CONFLICT (slug) DO NOTHING;

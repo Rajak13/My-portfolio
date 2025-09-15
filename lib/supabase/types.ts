@@ -16,6 +16,7 @@ export interface Database {
           role: 'admin' | 'editor' | 'author'
           bio: string | null
           avatar_url: string | null
+          theme_preference: string | null
           created_at: string
           updated_at: string
         }
@@ -25,6 +26,7 @@ export interface Database {
           role?: 'admin' | 'editor' | 'author'
           bio?: string | null
           avatar_url?: string | null
+          theme_preference?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -34,6 +36,7 @@ export interface Database {
           role?: 'admin' | 'editor' | 'author'
           bio?: string | null
           avatar_url?: string | null
+          theme_preference?: string | null
           created_at?: string
           updated_at?: string
         }
