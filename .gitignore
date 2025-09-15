@@ -51,4 +51,10 @@ logs
 tmp/
 temp/
 
+# Kiro IDE
 /.kiro
+
+# Supabase
+/supabase/migrations/
+/supabase/.temp/
+/supabase/config.toml
