@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Navigation } from './Navigation'
+import {Navigation} from './Navigation'
 
 export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
