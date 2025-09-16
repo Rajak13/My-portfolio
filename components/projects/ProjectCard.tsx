@@ -33,6 +33,9 @@ export function ProjectCard({
   const handleCardClick = () => {
     if (onClick) {
       onClick(project);
+    } else {
+      // Default navigation to project detail page
+      window.location.href = `/projects/${project.slug}`;
     }
   };
 
