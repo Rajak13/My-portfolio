@@ -32,7 +32,7 @@ export class ThemeAPI {
    */
   async getUserThemes(): Promise<Theme[]> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -74,18 +74,18 @@ export class ThemeAPI {
    * Create a new theme
    */
   async createTheme(
-    name: string, 
-    themeData: ThemeData, 
+    name: string,
+    themeData: ThemeData,
     isPublic = false
   ): Promise<Theme> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       throw new Error('User not authenticated')
     }
 
     const slug = generateThemeSlug(name)
-    
+
     // Check if slug already exists for this user
     const { data: existing } = await (this.supabase as any)
       .from('themes')
@@ -121,11 +121,11 @@ export class ThemeAPI {
    * Update an existing theme
    */
   async updateTheme(
-    id: string, 
+    id: string,
     updates: Partial<Pick<Theme, 'name' | 'data' | 'is_public'>>
   ): Promise<Theme> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -156,7 +156,7 @@ export class ThemeAPI {
    */
   async deleteTheme(id: string): Promise<void> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -177,7 +177,7 @@ export class ThemeAPI {
    */
   async duplicateTheme(id: string, newName: string): Promise<Theme> {
     const originalTheme = await this.getTheme(id)
-    
+
     if (!originalTheme) {
       throw new Error('Theme not found')
     }
@@ -190,7 +190,7 @@ export class ThemeAPI {
    */
   async getUserThemePreference(): Promise<string | null> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       return null
     }
@@ -213,7 +213,7 @@ export class ThemeAPI {
    */
   async saveUserThemePreference(themeId: string): Promise<void> {
     const { data: { user } } = await this.supabase.auth.getUser()
-    
+
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -227,4 +227,38 @@ export class ThemeAPI {
       throw new Error(`Failed to save theme preference: ${error.message}`)
     }
   }
+}
+
+// Wrapper functions for easier usage
+const themeAPI = new ThemeAPI()
+
+export async function getThemes(): Promise<Theme[]> {
+  const [publicThemes, userThemes] = await Promise.all([
+    themeAPI.getPublicThemes(),
+    themeAPI.getUserThemes().catch(() => []) // Ignore auth errors for public access
+  ])
+
+  // Combine and deduplicate themes
+  const allThemes = [...publicThemes, ...userThemes]
+  const uniqueThemes = allThemes.filter((theme, index, self) =>
+    index === self.findIndex(t => t.id === theme.id)
+  )
+
+  return uniqueThemes
+}
+
+export async function getTheme(id: string): Promise<Theme | null> {
+  return themeAPI.getTheme(id)
+}
+
+export async function createTheme(input: { name: string; data: ThemeData; is_public?: boolean }): Promise<Theme> {
+  return themeAPI.createTheme(input.name, input.data, input.is_public || false)
+}
+
+export async function updateTheme(id: string, input: { name?: string; data?: ThemeData; is_public?: boolean }): Promise<Theme> {
+  return themeAPI.updateTheme(id, input)
+}
+
+export async function deleteTheme(id: string): Promise<void> {
+  return themeAPI.deleteTheme(id)
 }

@@ -42,6 +42,25 @@ export async function getTranslations(
 }
 
 /**
+ * Wrapper functions for dashboard usage
+ */
+export async function createTranslation(input: Omit<Translation, 'id'>): Promise<Translation> {
+  const result = await upsertTranslation(input.key, input.language, input.value)
+  if (!result) {
+    throw new Error('Failed to create translation')
+  }
+  return result
+}
+
+export async function updateTranslation(id: string, input: Omit<Translation, 'id'>): Promise<Translation> {
+  const result = await upsertTranslation(input.key, input.language, input.value)
+  if (!result) {
+    throw new Error('Failed to update translation')
+  }
+  return result
+}
+
+/**
  * Get all translations for management purposes
  */
 export async function getAllTranslations(): Promise<Translation[]> {

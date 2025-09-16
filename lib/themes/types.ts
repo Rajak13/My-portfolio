@@ -46,6 +46,13 @@ export type ThemeSpacing = z.infer<typeof ThemeSpacingSchema>
 export type ThemeData = z.infer<typeof ThemeDataSchema>
 export type Theme = z.infer<typeof ThemeSchema>
 
+// Input types for API
+export type ThemeInput = {
+  name: string
+  data: ThemeData
+  is_public?: boolean
+}
+
 // Default theme data
 export const DEFAULT_THEME: ThemeData = {
   colors: {

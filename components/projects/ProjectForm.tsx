@@ -11,10 +11,10 @@ import { Project, CreateProjectInput, UpdateProjectInput, generateSlug } from '@
 import { MediaPicker, ImageOptimized } from '@/components/media';
 
 interface ProjectFormProps {
-  project?: Project;
-  onSubmit: (data: CreateProjectInput | UpdateProjectInput) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
+  initialData?: Project;
+  onSubmit: (data: CreateProjectInput) => Promise<void>;
+  loading?: boolean;
+  submitLabel?: string;
 }
 
 interface FormData {
@@ -36,10 +36,10 @@ interface FormErrors {
 }
 
 export function ProjectForm({
-  project,
+  initialData,
   onSubmit,
-  onCancel,
-  isLoading = false,
+  loading = false,
+  submitLabel = 'Save Project',
 }: ProjectFormProps) {
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -61,27 +61,27 @@ export function ProjectForm({
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [autoGenerateSlug, setAutoGenerateSlug] = useState(true);
 
-  const isEditing = !!project;
+  const isEditing = !!initialData;
 
   // Initialize form data when project prop changes
   useEffect(() => {
-    if (project) {
+    if (initialData) {
       setFormData({
-        title: project.title,
-        slug: project.slug,
-        description: project.description || '',
-        cover_path: project.cover_path || '',
-        github_url: project.github_url || '',
-        live_demo_url: project.live_demo_url || '',
-        tags: project.tags || [],
-        tech_stack: project.metadata.tech_stack || [],
-        duration: project.metadata.duration || '',
-        role: project.metadata.role || '',
-        published: project.published,
+        title: initialData.title,
+        slug: initialData.slug,
+        description: initialData.description || '',
+        cover_path: initialData.cover_path || '',
+        github_url: initialData.github_url || '',
+        live_demo_url: initialData.live_demo_url || '',
+        tags: initialData.tags || [],
+        tech_stack: initialData.metadata.tech_stack || [],
+        duration: initialData.metadata.duration || '',
+        role: initialData.metadata.role || '',
+        published: initialData.published,
       });
       setAutoGenerateSlug(false);
     }
-  }, [project]);
+  }, [initialData]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -174,7 +174,7 @@ export function ProjectForm({
     }
 
     try {
-      const submitData: CreateProjectInput | UpdateProjectInput = {
+      const submitData: CreateProjectInput = {
         title: formData.title.trim(),
         slug: formData.slug.trim(),
         description: formData.description.trim() || undefined,
@@ -205,31 +205,21 @@ export function ProjectForm({
             {isEditing ? 'Edit Project' : 'Create New Project'}
           </h1>
           <div className="flex items-center gap-3">
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-            )}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:focus:ring-offset-gray-800"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {isEditing ? 'Updating...' : 'Creating...'}
+                  Saving...
                 </>
               ) : (
-                isEditing ? 'Update Project' : 'Create Project'
+                submitLabel
               )}
             </button>
           </div>
@@ -253,7 +243,7 @@ export function ProjectForm({
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400'
               }`}
               placeholder="Enter project title"
-              disabled={isLoading}
+              disabled={loading}
             />
             {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
           </div>
@@ -278,7 +268,7 @@ export function ProjectForm({
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400'
                 }`}
                 placeholder="project-slug"
-                disabled={isLoading}
+                disabled={loading}
               />
             </div>
             {errors.slug && <p className="mt-1 text-sm text-red-600">{errors.slug}</p>}
@@ -300,7 +290,7 @@ export function ProjectForm({
             onChange={(e) => handleInputChange('description', e.target.value)}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
             placeholder="Describe your project..."
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
 
@@ -322,7 +312,7 @@ export function ProjectForm({
                 type="button"
                 onClick={() => handleInputChange('cover_path', '')}
                 className="absolute top-2 right-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
-                disabled={isLoading}
+                disabled={loading}
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -334,7 +324,7 @@ export function ProjectForm({
               type="button"
               onClick={() => setShowMediaPicker(true)}
               className="flex h-48 w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500"
-              disabled={isLoading}
+              disabled={loading}
             >
               <div className="text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,7 +354,7 @@ export function ProjectForm({
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400'
               }`}
               placeholder="https://github.com/username/repo"
-              disabled={isLoading}
+              disabled={loading}
             />
             {errors.github_url && <p className="mt-1 text-sm text-red-600">{errors.github_url}</p>}
           </div>
@@ -385,7 +375,7 @@ export function ProjectForm({
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400'
               }`}
               placeholder="https://example.com"
-              disabled={isLoading}
+              disabled={loading}
             />
             {errors.live_demo_url && <p className="mt-1 text-sm text-red-600">{errors.live_demo_url}</p>}
           </div>
@@ -405,7 +395,7 @@ export function ProjectForm({
               onChange={(e) => handleInputChange('duration', e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
               placeholder="e.g., 2 weeks, 3 months"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
 
@@ -421,7 +411,7 @@ export function ProjectForm({
               onChange={(e) => handleInputChange('role', e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
               placeholder="e.g., Full-stack Developer, Designer"
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
         </div>
@@ -439,13 +429,13 @@ export function ProjectForm({
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
               className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
               placeholder="Add a tag and press Enter"
-              disabled={isLoading}
+              disabled={loading}
             />
             <button
               type="button"
               onClick={addTag}
               className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              disabled={isLoading}
+              disabled={loading}
             >
               Add
             </button>
@@ -462,7 +452,7 @@ export function ProjectForm({
                     type="button"
                     onClick={() => removeTag(tag)}
                     className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
                     ×
                   </button>
@@ -485,13 +475,13 @@ export function ProjectForm({
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTech())}
               className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
               placeholder="Add a technology and press Enter"
-              disabled={isLoading}
+              disabled={loading}
             />
             <button
               type="button"
               onClick={addTech}
               className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              disabled={isLoading}
+              disabled={loading}
             >
               Add
             </button>
@@ -508,7 +498,7 @@ export function ProjectForm({
                     type="button"
                     onClick={() => removeTech(tech)}
                     className="text-green-600 hover:text-green-800 dark:text-green-300 dark:hover:text-green-100"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
                     ×
                   </button>
@@ -526,7 +516,7 @@ export function ProjectForm({
             checked={formData.published}
             onChange={(e) => handleInputChange('published', e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
-            disabled={isLoading}
+            disabled={loading}
           />
           <label htmlFor="published" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Publish this project (make it visible on the public site)
